@@ -7,7 +7,7 @@ import {
   AlertTriangle, UserCheck, Sun, Moon
 } from 'lucide-react';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = 'https://nerva-tuitions-backend.onrender.com';
 const MOM_UPI_ID = "momname@upi"; // REPLACE WITH YOUR MOM'S UPI VPA
 
 export default function App() {
