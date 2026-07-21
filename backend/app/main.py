@@ -157,6 +157,7 @@ def claim_payment_by_parent(student_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- ADMIN APPROVE PAYMENT ---
+# --- ADMIN APPROVE / MARK PAYMENT ---
 @app.post("/payments/student/{student_id}/pay")
 def pay_student_latest_invoice(student_id: int, db: Session = Depends(get_db)):
     try:
@@ -192,8 +193,6 @@ def pay_student_latest_invoice(student_id: int, db: Session = Depends(get_db)):
         return {"status": "Success", "amount_paid": float(total_due)}
     except Exception as e:
         db.rollback()
-        print("❌ PAYMENT APPROVAL ERROR TRACEBACK:")
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- CRUD ROUTES ---
