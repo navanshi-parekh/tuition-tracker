@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { 
   Users, DollarSign, Calendar, PlusCircle, CheckCircle2, BookOpen, Clock, 
   Filter, AlertCircle, Trash2, Edit3, Layers, QrCode, LogOut, Lock, 
-  AlertTriangle, UserCheck, Sun, Moon, MessageSquare
+  AlertTriangle, UserCheck, Sun, Moon, MessageCircle
 } from 'lucide-react';
 
 const API_BASE = 'https://nerva-tuitions-backend.onrender.com';
@@ -136,7 +136,6 @@ export default function App() {
       `You can pay directly via UPI to: *${MOM_UPI_ID}*\n` +
       `Or log in to the parent portal here: https://nerva-tuitions-frontend.onrender.com\n\nThank you! 🙏`;
 
-    // Clean phone number (strip non-digits)
     const cleanPhone = student.phone_number.replace(/\D/g, '');
     const formattedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
 
@@ -502,7 +501,7 @@ export default function App() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[700px]">
+            <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className={`text-[11px] sm:text-xs uppercase font-semibold border-b ${darkMode ? 'bg-slate-800/80 text-slate-400 border-slate-700' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
                   <th className="px-4 sm:px-6 py-3">Student & Class</th>
@@ -573,15 +572,15 @@ export default function App() {
                           <div className="text-xs opacity-50">{student.phone_number}</div>
                         </td>
                         <td className="px-4 sm:px-6 py-3.5 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end space-x-1.5">
-                            {/* WHATSAPP REMINDER BUTTON */}
+                          <div className="flex items-center justify-end space-x-2">
+                            {/* ALWAYS VISIBLE GREEN WHATSAPP ICON BUTTON */}
                             <button
                               onClick={() => sendWhatsAppReminder(student)}
-                              className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2 py-1 rounded-lg transition text-xs shadow-sm cursor-pointer"
-                              title="Send WhatsApp Fee Reminder"
+                              className="p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm cursor-pointer flex items-center space-x-1"
+                              title={`Send WhatsApp fee reminder to ${student.parent_name}`}
                             >
-                              <MessageSquare className="w-3.5 h-3.5" />
-                              <span className="hidden md:inline">Remind</span>
+                              <MessageCircle className="w-4 h-4" />
+                              <span className="text-xs font-semibold px-0.5">Remind</span>
                             </button>
 
                             {student.payment_status === 'PAID' && (
@@ -623,16 +622,16 @@ export default function App() {
 
                             <button
                               onClick={() => handleOpenEditModal(student)}
-                              className={`p-1 rounded-lg transition cursor-pointer ${darkMode ? 'text-slate-400 hover:text-indigo-400 hover:bg-slate-700' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                              className={`p-1.5 rounded-lg transition cursor-pointer ${darkMode ? 'text-slate-400 hover:text-indigo-400 hover:bg-slate-700' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
                             >
-                              <Edit3 className="w-3.5 h-3.5" />
+                              <Edit3 className="w-4 h-4" />
                             </button>
 
                             <button
                               onClick={() => handleDeleteStudent(student.id, student.name)}
-                              className={`p-1 rounded-lg transition cursor-pointer ${darkMode ? 'text-slate-400 hover:text-rose-400 hover:bg-slate-700' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'}`}
+                              className={`p-1.5 rounded-lg transition cursor-pointer ${darkMode ? 'text-slate-400 hover:text-rose-400 hover:bg-slate-700' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'}`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
