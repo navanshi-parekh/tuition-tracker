@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { 
   Users, DollarSign, Calendar, PlusCircle, CheckCircle2, BookOpen, Clock, 
   Filter, AlertCircle, Trash2, Edit3, Layers, QrCode, LogOut, Lock, 
-  AlertTriangle, UserCheck, Sun, Moon
+  AlertTriangle, UserCheck, Sun, Moon, MessageSquare
 } from 'lucide-react';
 
 const API_BASE = 'https://nerva-tuitions-backend.onrender.com';
@@ -115,6 +115,33 @@ export default function App() {
     } catch (err) {
       alert("Failed to record payment.");
     }
+  };
+
+  // 📲 HELPER: OPEN WHATSAPP WITH DYNAMIC PRE-FILLED REMINDER
+  const sendWhatsAppReminder = (student) => {
+    const isQuarterly = student.payment_type === '3_MONTHS';
+    const baseDue = isQuarterly ? student.custom_fee * 3 : student.custom_fee;
+    const lateFee = student.late_fee || 0;
+    const totalDue = baseDue + lateFee;
+
+    let text = `Hello ${student.parent_name} Ji,\n\nThis is a friendly reminder regarding the tuition fee for *${student.name}* (${student.standard}).\n\n` +
+      `📌 *Term Period:* ${student.term_start} to ${student.term_end}\n` +
+      `💰 *Base Fee:* ₹${baseDue}\n`;
+
+    if (lateFee > 0) {
+      text += `⚠️ *Late Fee Penalty (After 10th):* ₹${lateFee}\n`;
+    }
+
+    text += `💳 *Total Amount Due:* ₹${totalDue}\n\n` +
+      `You can pay directly via UPI to: *${MOM_UPI_ID}*\n` +
+      `Or log in to the parent portal here: https://nerva-tuitions-frontend.onrender.com\n\nThank you! 🙏`;
+
+    // Clean phone number (strip non-digits)
+    const cleanPhone = student.phone_number.replace(/\D/g, '');
+    const formattedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+
+    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   };
 
   const handleAddStudent = async (e) => {
@@ -337,7 +364,6 @@ export default function App() {
     return matchesBatch && matchesPlan;
   });
 
-  // ✅ ACCURATE REVENUE CALCULATION: Uses exact total paid amount stored in payment records!
   const totalCollected = filteredStudents
     .filter(s => s.payment_status === 'PAID')
     .reduce((sum, s) => {
@@ -476,7 +502,7 @@ export default function App() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[650px]">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className={`text-[11px] sm:text-xs uppercase font-semibold border-b ${darkMode ? 'bg-slate-800/80 text-slate-400 border-slate-700' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
                   <th className="px-4 sm:px-6 py-3">Student & Class</th>
@@ -548,6 +574,16 @@ export default function App() {
                         </td>
                         <td className="px-4 sm:px-6 py-3.5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end space-x-1.5">
+                            {/* WHATSAPP REMINDER BUTTON */}
+                            <button
+                              onClick={() => sendWhatsAppReminder(student)}
+                              className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2 py-1 rounded-lg transition text-xs shadow-sm cursor-pointer"
+                              title="Send WhatsApp Fee Reminder"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span className="hidden md:inline">Remind</span>
+                            </button>
+
                             {student.payment_status === 'PAID' && (
                               <span className="inline-flex items-center space-x-1 bg-emerald-500/10 text-emerald-400 font-semibold px-2.5 py-1 rounded-lg text-xs border border-emerald-500/20 shadow-sm">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
