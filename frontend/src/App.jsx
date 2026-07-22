@@ -37,9 +37,35 @@ export default function App() {
     custom_fee: 3000, payment_type: '3_MONTHS', batch_timing: '4:00 PM - 5:00 PM'
   });
 
+  // 🔄 REAL-TIME AUTO-POLLING & FOCUS REFRESH
   useEffect(() => {
-    if (currentUser?.role === 'ADMIN') fetchAdminData();
-    if (currentUser?.role === 'PARENT') fetchParentData();
+    if (!currentUser) return;
+
+    if (currentUser.role === 'ADMIN') {
+      fetchAdminData();
+
+      const interval = setInterval(() => {
+        fetchAdminData();
+      }, 5000);
+
+      const handleFocus = () => fetchAdminData();
+      window.addEventListener('focus', handleFocus);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('focus', handleFocus);
+      };
+    }
+
+    if (currentUser.role === 'PARENT') {
+      fetchParentData();
+
+      const interval = setInterval(() => {
+        fetchParentData();
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
   }, [currentUser]);
 
   const handleLogin = async (e) => {
@@ -253,7 +279,7 @@ export default function App() {
               </div>
               <div className="text-right">
                 <p className="text-[10px] uppercase font-bold opacity-60">Total Amount</p>
-                <p className="text-lg sm:text-xl font-black text-indigo-500">₹{totalDue}</p>
+                <p className="text-lg sm:text-xl font-black text-indigo-500">₹{parentStudent.payment_status === 'PAID' ? parentStudent.paid_amount : totalDue}</p>
               </div>
             </div>
 
@@ -265,9 +291,14 @@ export default function App() {
             )}
 
             {parentStudent.payment_status === 'PAID' && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center justify-center space-x-2 text-emerald-400">
-                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                <span className="font-bold text-sm">Term Fee Settled (Paid ✓)</span>
+              <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex flex-col items-center justify-center space-y-1 text-emerald-400">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                  <span className="font-bold text-sm">Term Fee Settled (Paid ✓)</span>
+                </div>
+                {parentStudent.paid_late_fee > 0 && (
+                  <p className="text-[11px] text-emerald-500/80">Includes ₹{parentStudent.paid_late_fee} collected late fee</p>
+                )}
               </div>
             )}
 
@@ -306,13 +337,15 @@ export default function App() {
     return matchesBatch && matchesPlan;
   });
 
-  // Calculate total collected including base fees + late fee penalties
+  // ✅ ACCURATE REVENUE CALCULATION: Uses exact total paid amount stored in payment records!
   const totalCollected = filteredStudents
     .filter(s => s.payment_status === 'PAID')
     .reduce((sum, s) => {
+      if (s.paid_amount && s.paid_amount > 0) {
+        return sum + s.paid_amount;
+      }
       const baseFee = s.payment_type === '3_MONTHS' ? s.custom_fee * 3 : s.custom_fee;
-      const lateFee = s.late_fee || 0;
-      return sum + baseFee + lateFee;
+      return sum + baseFee;
     }, 0);
 
   return (
@@ -492,11 +525,17 @@ export default function App() {
                           <div><span className="font-semibold">To:</span> {student.term_end}</div>
                         </td>
                         <td className="px-4 sm:px-6 py-3.5 whitespace-nowrap">
-                          <div className="font-bold">₹{totalDueWithPenalty}</div>
-                          {lateFee > 0 && (
+                          <div className="font-bold">₹{student.payment_status === 'PAID' ? student.paid_amount : totalDueWithPenalty}</div>
+                          {student.payment_status !== 'PAID' && lateFee > 0 && (
                             <div className="text-[10px] text-rose-500 font-bold flex items-center mt-0.5">
                               <AlertTriangle className="w-3 h-3 mr-0.5 shrink-0" />
                               Includes ₹{lateFee} Late Fee
+                            </div>
+                          )}
+                          {student.payment_status === 'PAID' && student.paid_late_fee > 0 && (
+                            <div className="text-[10px] text-emerald-500 font-bold flex items-center mt-0.5">
+                              <CheckCircle2 className="w-3 h-3 mr-0.5 shrink-0" />
+                              Incl. ₹{student.paid_late_fee} Late Fee
                             </div>
                           )}
                           <div className="text-[10px] opacity-40">

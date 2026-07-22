@@ -69,7 +69,9 @@ def get_all_students(db: Session = Depends(get_db)):
         ).order_by(models.Payment.id.desc()).first()
         
         status = latest_payment.status if latest_payment else "UNPAID"
-        late_fee = 0.0 if status == "PAID" else calculate_late_fee()
+        paid_amount = float(latest_payment.total_paid) if (latest_payment and status == "PAID") else 0.0
+        paid_late_fee = float(latest_payment.late_fee_applied) if (latest_payment and status == "PAID") else 0.0
+        current_late_fee = 0.0 if status == "PAID" else calculate_late_fee()
         
         student_data = {
             "id": s.id,
@@ -86,7 +88,9 @@ def get_all_students(db: Session = Depends(get_db)):
             "payment_type": s.payment_type,
             "batch_timing": s.batch_timing,
             "payment_status": status,
-            "late_fee": late_fee
+            "late_fee": current_late_fee,
+            "paid_amount": paid_amount,
+            "paid_late_fee": paid_late_fee
         }
         result.append(student_data)
         
@@ -108,7 +112,9 @@ def get_single_student(student_id: int, db: Session = Depends(get_db)):
     ).order_by(models.Payment.id.desc()).first()
     
     status = latest_payment.status if latest_payment else "UNPAID"
-    late_fee = 0.0 if status == "PAID" else calculate_late_fee()
+    paid_amount = float(latest_payment.total_paid) if (latest_payment and status == "PAID") else 0.0
+    paid_late_fee = float(latest_payment.late_fee_applied) if (latest_payment and status == "PAID") else 0.0
+    current_late_fee = 0.0 if status == "PAID" else calculate_late_fee()
     
     return {
         "id": s.id,
@@ -123,7 +129,9 @@ def get_single_student(student_id: int, db: Session = Depends(get_db)):
         "payment_type": s.payment_type,
         "batch_timing": s.batch_timing,
         "payment_status": status,
-        "late_fee": late_fee
+        "late_fee": current_late_fee,
+        "paid_amount": paid_amount,
+        "paid_late_fee": paid_late_fee
     }
 
 # --- PARENT CLAIM PAYMENT ---
