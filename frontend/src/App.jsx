@@ -8,11 +8,11 @@ import {
 } from 'lucide-react';
 
 const API_BASE = 'https://nerva-tuitions-backend.onrender.com';
-const MOM_UPI_ID = "momname@upi"; // REPLACE WITH YOUR MOM'S UPI VPA
+const MOM_UPI_ID = "momname@upi"; // REPLACE WITH YOUR MOM'S UPI ID
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null); // null = Logged Out
+  const [currentUser, setCurrentUser] = useState(null);
   const [loginPhone, setLoginPhone] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
@@ -159,7 +159,7 @@ export default function App() {
     setEditingStudentId(null);
   };
 
-  // --- 1. LOGIN SCREEN ---
+  // 1. LOGIN SCREEN
   if (!currentUser) {
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-200 ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-100 text-slate-800'}`}>
@@ -174,7 +174,6 @@ export default function App() {
             <button 
               onClick={() => setDarkMode(!darkMode)}
               className={`p-2 rounded-lg transition cursor-pointer ${darkMode ? 'bg-slate-700 text-amber-400' : 'bg-slate-100 text-slate-600'}`}
-              title="Toggle Theme"
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -214,7 +213,7 @@ export default function App() {
     );
   }
 
-  // --- 2. PARENT PORTAL VIEW ---
+  // 2. PARENT PORTAL
   if (currentUser.role === 'PARENT' && parentStudent) {
     const isQuarterly = parentStudent.payment_type === '3_MONTHS';
     const baseDue = isQuarterly ? parentStudent.custom_fee * 3 : parentStudent.custom_fee;
@@ -300,14 +299,14 @@ export default function App() {
     );
   }
 
-  // --- 3. MOM'S ADMIN DASHBOARD ---
+  // 3. ADMIN DASHBOARD
   const filteredStudents = students.filter(s => {
     const matchesBatch = selectedBatchFilter === 'ALL' || s.batch_timing === selectedBatchFilter;
     const matchesPlan = selectedPlanFilter === 'ALL' || s.payment_type === selectedPlanFilter;
     return matchesBatch && matchesPlan;
   });
 
-  // ✅ UPDATED REVENUE CALCULATION: Includes Base Fee + Late Fees Collected!
+  // Calculate total collected including base fees + late fee penalties
   const totalCollected = filteredStudents
     .filter(s => s.payment_status === 'PAID')
     .reduce((sum, s) => {
@@ -318,7 +317,6 @@ export default function App() {
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-200 ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
-      {/* Header */}
       <header className="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center">
           <div className="flex items-center space-x-2 sm:space-x-3">
@@ -330,7 +328,6 @@ export default function App() {
             <button 
               onClick={() => setDarkMode(!darkMode)}
               className="p-1.5 sm:p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
-              title="Toggle Theme Mode"
             >
               {darkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
             </button>
@@ -354,10 +351,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
-        
-        {/* PAYMENT PLAN TOGGLES */}
         <div className={`p-3 rounded-xl border shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
           <div className="flex items-center space-x-2">
             <Layers className="w-4 h-4 text-indigo-400" />
@@ -385,7 +379,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* FINANCIAL SPLIT CARDS (COMPACT ON MOBILE) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
           <div className={`p-4 sm:p-6 rounded-xl shadow-sm border flex items-center justify-between ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
             <div>
@@ -418,7 +411,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* BATCH FILTERS */}
         <div className="flex items-center space-x-2 overflow-x-auto pb-1.5">
           <span className="text-xs font-semibold uppercase opacity-60 flex items-center shrink-0 mr-1">
             <Filter className="w-3.5 h-3.5 mr-1" /> Batch:
@@ -443,7 +435,6 @@ export default function App() {
           ))}
         </div>
 
-        {/* STUDENT TABLE CONTAINER WITH RESPONSIVE SCROLL */}
         <div className={`rounded-xl shadow-sm border overflow-hidden ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
           <div className={`px-4 sm:px-6 py-3.5 border-b flex justify-between items-center ${darkMode ? 'border-slate-700' : 'border-slate-100'}`}>
             <h2 className="text-base sm:text-lg font-bold">
@@ -580,7 +571,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* --- ADMIN UPI QR MODAL (MOBILE FRIENDLY) --- */}
+      {/* ADMIN UPI QR MODAL */}
       {qrStudent && (() => {
         const isQuarterly = qrStudent.payment_type === '3_MONTHS';
         const baseDue = isQuarterly ? qrStudent.custom_fee * 3 : qrStudent.custom_fee;
@@ -614,7 +605,7 @@ export default function App() {
         );
       })()}
 
-      {/* ENROLLMENT & EDIT MODALS (MOBILE SCROLLABLE OVERLAY) */}
+      {/* ENROLLMENT & EDIT MODALS */}
       {(showAddModal || showEditModal) && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
           <div className={`rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[95vh] flex flex-col border ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>

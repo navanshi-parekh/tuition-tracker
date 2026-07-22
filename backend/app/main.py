@@ -14,7 +14,7 @@ app = FastAPI(title="Nerva Tuitions Management API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows local React dev server to communicate
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,7 +40,7 @@ def calculate_late_fee():
         return (current_day - 9) * 50.0
     return 0.0
 
-# --- LOGIN ENDPOINT ---
+# --- AUTHENTICATION / LOGIN ---
 @app.post("/login")
 def login(phone: str = Body(..., embed=True), password: str = Body(..., embed=True), db: Session = Depends(get_db)):
     clean_phone = phone.strip()
@@ -53,7 +53,7 @@ def login(phone: str = Body(..., embed=True), password: str = Body(..., embed=Tr
     
     raise HTTPException(status_code=401, detail="Invalid phone number or password")
 
-# --- GET ALL STUDENTS (ADMIN VIEW) ---
+# --- GET ALL STUDENTS (ADMIN) ---
 @app.get("/students/")
 def get_all_students(db: Session = Depends(get_db)):
     students = db.query(models.Student).all()
@@ -92,7 +92,7 @@ def get_all_students(db: Session = Depends(get_db)):
         
     return result
 
-# --- GET SINGLE STUDENT (PARENT VIEW) ---
+# --- GET SINGLE STUDENT (PARENT) ---
 @app.get("/students/{student_id}")
 def get_single_student(student_id: int, db: Session = Depends(get_db)):
     s = db.query(models.Student).filter(models.Student.id == student_id).first()
@@ -152,12 +152,9 @@ def claim_payment_by_parent(student_id: int, db: Session = Depends(get_db)):
         return {"status": "Success", "message": "Claim submitted!"}
     except Exception as e:
         db.rollback()
-        print("❌ PARENT CLAIM ERROR TRACEBACK:")
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- ADMIN APPROVE PAYMENT ---
-# --- ADMIN APPROVE / MARK PAYMENT ---
 @app.post("/payments/student/{student_id}/pay")
 def pay_student_latest_invoice(student_id: int, db: Session = Depends(get_db)):
     try:
@@ -195,7 +192,7 @@ def pay_student_latest_invoice(student_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- CRUD ROUTES ---
+# --- STUDENT CRUD ---
 @app.post("/students/", response_model=schemas.StudentResponse, status_code=201)
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     db_student = models.Student(
@@ -239,6 +236,7 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "Success"}
 
+# --- REVENUE SPLIT ANALYTICS ---
 @app.get("/analytics/revenue-split")
 def get_revenue_analytics(db: Session = Depends(get_db)):
     paid_invoices = db.query(models.Payment).filter(models.Payment.status == "PAID").all()

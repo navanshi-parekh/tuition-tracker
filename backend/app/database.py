@@ -1,22 +1,23 @@
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-# 1. Tell Python where to find or create the database file
-DATABASE_URL = "sqlite:///./tuition_data.db"
+# 1. Reads DATABASE_URL from Render PostgreSQL, or defaults to local SQLite
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./tuition_data.db")
 
-# 2. Create the engine wrapper to handle database communication
-engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False}  # Needed only for SQLite stability
-)
+# 2. Fix Render's PostgreSQL URL format if needed
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# 3. Create a session factory (this generates unique database connections for actions)
+# 3. Handle SQLite vs PostgreSQL connection arguments
+connect_args = {"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 4. The base class that our database tables will inherit from later
 Base = declarative_base()
 
-# A helper tool to open and safely close the database when an API request happens
 def get_db():
     db = SessionLocal()
     try:
